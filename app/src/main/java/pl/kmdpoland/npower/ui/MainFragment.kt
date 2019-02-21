@@ -7,11 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.jakewharton.rxbinding2.view.clicks
-import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.main_fragment.view.*
 import java.util.*
-
 
 class MainFragment : Fragment() {
     companion object {
@@ -37,12 +36,15 @@ class MainFragment : Fragment() {
                     .appendPath("authorize")
                     .appendQueryParameter("client_id", "0oajedfmef0ijCd6s0h7")
                     .appendQueryParameter("scope", "openid")
-                    .appendQueryParameter("response_type", "code")
-                    .appendQueryParameter("redirect_uri", "com.oktapreview.dev-910575:/callback")
+                    .appendQueryParameter("response_type", "token")
+                    .appendQueryParameter("redirect_uri", "npower.kmd.pl://callback")
+                    .appendQueryParameter("state", "state-"+UUID.randomUUID())
+                    .appendQueryParameter("nonce", "foo")
                     .build()
 
                 var intent = CustomTabsIntent.Builder()
                     .build()
+
                 intent.launchUrl(this.activity, uri)
 
             }
