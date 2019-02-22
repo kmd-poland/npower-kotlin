@@ -7,10 +7,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.jakewharton.rxbinding2.view.clicks
+import com.squareup.picasso.*
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.main_fragment.view.*
+import pl.kmdpoland.npower.R
 import java.util.*
+import java.util.concurrent.TimeUnit
+import android.view.animation.AlphaAnimation
+import android.widget.ImageView
+
 
 class MainFragment : Fragment() {
     companion object {
@@ -22,6 +31,12 @@ class MainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         var view = inflater.inflate(pl.kmdpoland.npower.R.layout.main_fragment, container, false)
+
+        Glide
+            .with(context)
+            .load(R.drawable.lake)
+            .apply(RequestOptions().fitCenter().centerCrop())
+            .into(view.imageView)
 
         view.button_login
             .clicks()
