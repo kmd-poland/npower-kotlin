@@ -3,6 +3,6 @@
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools" android:id="@+id/nav_graph"
             app:startDestination="@id/mainFragment">
-    <fragment android:name="pl.kmdpoland.npower.ui.MainFragment"
+    <fragment android:name="pl.kmdpoland.npower.ui.main.MainFragment"
               android:label="MainFragment" android:id="@+id/mainFragment"/>
 </navigation>
