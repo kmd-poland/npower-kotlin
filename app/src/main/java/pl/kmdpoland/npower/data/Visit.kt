@@ -10,5 +10,5 @@ data class Visit(
     var address: String,
     var coordinates: Array<Double>){
 
-    var fullName = "$firstName $lastName"
+
 }

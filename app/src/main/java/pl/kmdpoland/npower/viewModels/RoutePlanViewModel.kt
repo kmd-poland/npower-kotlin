@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import pl.kmdpoland.npower.data.RoutePlan
+import pl.kmdpoland.npower.data.Visit
 import pl.kmdpoland.npower.services.ApiService
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -16,6 +17,8 @@ class RoutePlanViewModel : ViewModel() {
     private val apiService: ApiService
 
     val routePlanObservable: Observable<RoutePlan>
+
+    lateinit var selectedVisit: Visit
 
     init {
 

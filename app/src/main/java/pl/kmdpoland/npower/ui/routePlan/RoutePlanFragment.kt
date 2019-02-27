@@ -1,13 +1,17 @@
 package pl.kmdpoland.npower.ui.routePlan
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Bitmap
+import android.location.LocationManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -30,7 +34,6 @@ import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
-import eightbitlab.com.blurview.RenderScriptBlur
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
@@ -39,6 +42,7 @@ import kotlinx.android.synthetic.main.route_plan_fragment.view.*
 import kotlinx.android.synthetic.main.route_plan_panel_view.*
 import kotlinx.android.synthetic.main.route_plan_panel_view.view.*
 import pl.kmdpoland.npower.R
+import pl.kmdpoland.npower.ui.main.MainFragmentDirections
 import pl.kmdpoland.npower.viewModels.RoutePlanViewModel
 import retrofit2.Call
 import retrofit2.Callback
@@ -75,25 +79,6 @@ class RoutePlanFragment : Fragment() {
     ): View {
         var view = inflater.inflate(pl.kmdpoland.npower.R.layout.route_plan_fragment, container, false)
 
-        view.sliding_layout.anchorPoint = 0.4f
-        view.sliding_layout.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
-        view.sliding_layout.setDragView(view.layout_handler)
-
-
-
-
-        view.recyclerView.addOnScrollListener(object : OnVerticalScrollListener() {
-            override fun onScrolledDown() {
-                super.onScrolledDown()
-                sliding_layout.panelState = SlidingUpPanelLayout.PanelState.EXPANDED
-            }
-
-            override fun onScrolledToTop() {
-                super.onScrolledToTop()
-                sliding_layout.panelState = SlidingUpPanelLayout.PanelState.ANCHORED
-            }
-        })
-
         Mapbox.getInstance(this.context!!, getString(R.string.mapbox_access_token))
         view.mapView.onCreate(savedInstanceState)
 
@@ -129,7 +114,17 @@ class RoutePlanFragment : Fragment() {
             .routePlanObservable
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                recyclerView.adapter = RoutePlanAdapter(it.visits, context!!)
+                var adapter = RoutePlanAdapter(it.visits, context!!)
+                recyclerView.adapter = adapter
+
+                adapter.itemSelectedSubject.subscribe{
+                    viewModel.selectedVisit = it
+
+
+                    var action = RoutePlanFragmentDirections.actionRoutePlanFragmentToVisitFragment()
+                    findNavController().navigate(action)
+
+                }.addTo(disposable)
 
                 symbolManager.delete(annotationList)
                 annotationList.clear()

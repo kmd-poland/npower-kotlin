@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.sothree.slidinguppanel.SlidingUpPanelLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:sothree="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:mapbox="http://schemas.android.com/apk/res-auto"
     android:id="@+id/sliding_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="bottom"
-    sothree:umanoFadeColor="@android:color/transparent"
-    sothree:umanoPanelHeight="26dp"
-    sothree:umanoShadowHeight="4dp">
+    android:layout_height="match_parent">
 
     <com.mapbox.mapboxsdk.maps.MapView
             android:id="@+id/mapView"
@@ -23,10 +19,12 @@
     </com.mapbox.mapboxsdk.maps.MapView>
 
     <include layout="@layout/route_plan_panel_view"
+             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+             app:behavior_peekHeight="200dp"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              android:gravity="center|top">
 
     </include>
 
-</com.sothree.slidinguppanel.SlidingUpPanelLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
