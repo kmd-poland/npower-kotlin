@@ -19,6 +19,11 @@ import android.graphics.BitmapFactory
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import android.widget.RemoteViews
+import com.bumptech.glide.request.target.NotificationTarget
+import pl.kmdpoland.npower.R
+import android.os.Looper
+import android.os.Handler
 
 
 class GeofenceIntentService : IntentService("GeofenceIntentService") {
@@ -57,35 +62,42 @@ class GeofenceIntentService : IntentService("GeofenceIntentService") {
 
             var pendingIntent = PendingIntent.getActivity(applicationContext,0,intent,PendingIntent.FLAG_UPDATE_CURRENT)
 
-            var notification = NotificationCompat.Builder(applicationContext, notChannelId)
-                .setAutoCancel(true)
-                .setContentTitle("${visit.firstName} ${visit.lastName}")
-                .setContentText("Click here to see visit!!")
-                .setContentIntent(pendingIntent)
-                .setLargeIcon(getBitmapFromURL(visit.avatar))
+            val notificationLayout = RemoteViews(packageName, R.layout.notification_small)
+            notificationLayout.setTextViewText(R.id.title, "Approaching ${visit.firstName} ${visit.lastName}")
+            notificationLayout.setTextViewText(R.id.details, "Click here to see visit!!")
+
+            val notification = NotificationCompat.Builder(applicationContext, notChannelId)
+                .setOngoing(true)
                 .setSmallIcon(pl.kmdpoland.npower.R.drawable.ic_pig)
+                .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+                .setContentIntent(pendingIntent)
+                .setCustomContentView(notificationLayout)
                 .build()
 
             notId = notId + 1
+
+            val notificationTarget = NotificationTarget(
+                applicationContext,
+                R.id.image,
+                notificationLayout,
+                notification,
+                notId
+            )
+
+            val mainHandler = Handler(Looper.getMainLooper())
+            val myRunnable = Runnable {
+                Glide
+                    .with(applicationContext)
+                    .asBitmap()
+                    .load(visit.avatar)
+                    .apply(RequestOptions.overrideOf(90))
+                    .apply(RequestOptions.circleCropTransform())
+                    .into( notificationTarget );
+            }
+
+            mainHandler.post(myRunnable)
             notificationManager.notify(notId, notification)
-
-
-        }
-    }
-
-    fun getBitmapFromURL(src: String): Bitmap? {
-        try {
-            val url = URL(src)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.setDoInput(true)
-            connection.connect()
-            val input = connection.getInputStream()
-            return BitmapFactory.decodeStream(input)
-        } catch (e: IOException) {
-            // Log exception
-            return null
         }
 
     }
-
 }

@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">NPower</string>
     <string name="mapbox_access_token">
-        {INSERT_YOUR_MAP_BOX_TOKEN_HERE}
+        pk.eyJ1Ijoia21kbWN6IiwiYSI6ImNqcjBuYjVyaDBvdmw0MnBjMHp4YTNjN2gifQ.iX410k_yowA_YsV52H3V5A
     </string>
 </resources>
