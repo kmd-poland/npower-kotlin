@@ -1,36 +1,38 @@
 package pl.kmdpoland.npower.viewModels
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ViewModel
+import android.app.PendingIntent
+import android.content.Intent
+import androidx.lifecycle.*
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingRequest
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.PublishSubject
 import pl.kmdpoland.npower.data.RoutePlan
 import pl.kmdpoland.npower.data.Visit
 import pl.kmdpoland.npower.services.ApiService
+import pl.kmdpoland.npower.services.GeofenceIntentService
+import pl.kmdpoland.npower.services.GeofenceService
+import pl.kmdpoland.npower.services.RoutePlanService
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.*
 
 class RoutePlanViewModel : ViewModel() {
-    private val apiService: ApiService
+    val routePlanObservable: Observable<List<Visit>>
 
-    val routePlanObservable: Observable<RoutePlan>
-
-    lateinit var selectedVisit: Visit
+    var selectedVisit: MutableLiveData<Visit> = MutableLiveData()
 
     init {
 
-        apiService = Retrofit.Builder()
-            .baseUrl("https://npower.azurewebsites.net/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+        routePlanObservable = RoutePlanService.getVisits()
 
-        routePlanObservable = apiService
-            .getRoutePlan()
-            .subscribeOn(Schedulers.io())
+        routePlanObservable
+            .subscribe {
+                it.forEach {
+                    GeofenceService.setGeofence(it.coordinates[1], it.coordinates[0], 100f, it.avatar)
+                }
+            }
     }
 }

@@ -44,11 +44,16 @@ class MainFragment : Fragment() {
     ): View {
         var view = inflater.inflate(pl.kmdpoland.npower.R.layout.main_fragment, container, false)
 
-        if(activity?.intent?.data?.scheme == "npower.kmd.pl"){
+        if(activity?.intent?.data?.scheme == "npower.kmd.pl") {
             val data = activity!!.intent.data.toString()
             var token = data.subSequence(data.indexOf("access_token=")+13, data.lastIndex)
 
             var action = MainFragmentDirections.actionMainFragmentToRoutePlanFragment()
+            findNavController().navigate(action)
+        }
+
+        if(activity?.intent?.hasExtra("visitID") == true) {
+            var action = MainFragmentDirections.actionMainFragmentToVisitFragment()
             findNavController().navigate(action)
         }
 
@@ -69,13 +74,13 @@ class MainFragment : Fragment() {
         button_login
             .clicks()
             .subscribe {
-//                var action = MainFragmentDirections.actionMainFragmentToRoutePlanFragment()
-//                findNavController().navigate(action)
+                var action = MainFragmentDirections.actionMainFragmentToRoutePlanFragment()
+                findNavController().navigate(action)
 
-                var intent = CustomTabsIntent.Builder()
-                    .build()
-
-                intent.launchUrl(this.activity, viewModel.buildAuthUri())
+//                var intent = CustomTabsIntent.Builder()
+//                    .build()
+//
+//                intent.launchUrl(this.activity, viewModel.buildAuthUri())
             }
             .addTo(disposable)
     }

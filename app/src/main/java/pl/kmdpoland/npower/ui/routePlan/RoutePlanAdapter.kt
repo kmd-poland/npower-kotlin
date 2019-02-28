@@ -12,7 +12,7 @@ import pl.kmdpoland.npower.R
 import pl.kmdpoland.npower.data.Visit
 import java.text.SimpleDateFormat
 
-class RoutePlanAdapter(val items : Array<Visit>, val context: Context) : RecyclerView.Adapter<VisitViewHolder>() {
+class RoutePlanAdapter(val items : List<Visit>, val context: Context) : RecyclerView.Adapter<VisitViewHolder>() {
 
     val itemSelectedSubject = PublishSubject.create<Visit>()
 

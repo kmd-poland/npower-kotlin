@@ -1,7 +1,9 @@
 package pl.kmdpoland.npower.ui.routePlan
 
 import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.location.LocationManager
 import android.os.Bundle
@@ -17,6 +19,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.SimpleTarget
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationServices
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.MapboxDirections
@@ -37,11 +43,14 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
+import io.reactivex.rxkotlin.withLatestFrom
 import kotlinx.android.synthetic.main.route_plan_fragment.*
 import kotlinx.android.synthetic.main.route_plan_fragment.view.*
 import kotlinx.android.synthetic.main.route_plan_panel_view.*
 import kotlinx.android.synthetic.main.route_plan_panel_view.view.*
 import pl.kmdpoland.npower.R
+import pl.kmdpoland.npower.services.GeofenceIntentService
+import pl.kmdpoland.npower.services.LocationService
 import pl.kmdpoland.npower.ui.main.MainFragmentDirections
 import pl.kmdpoland.npower.viewModels.RoutePlanViewModel
 import retrofit2.Call
@@ -73,6 +82,7 @@ class RoutePlanFragment : Fragment() {
         }
     }
 
+    @SuppressLint("MissingPermission")
     override fun onCreateView (
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -94,9 +104,9 @@ class RoutePlanFragment : Fragment() {
 
                 style = it
 
+                startObservingRoutePlan()
                 configureMapBoxLocationComponent()
             }
-
         }
 
         view.recyclerView.layoutManager = LinearLayoutManager(context) as RecyclerView.LayoutManager?
@@ -113,23 +123,78 @@ class RoutePlanFragment : Fragment() {
         viewModel
             .routePlanObservable
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                var adapter = RoutePlanAdapter(it.visits, context!!)
+            .subscribe{
+                var adapter = RoutePlanAdapter(it, context!!)
                 recyclerView.adapter = adapter
 
-                adapter.itemSelectedSubject.subscribe{
-                    viewModel.selectedVisit = it
-
+                adapter.itemSelectedSubject.subscribe {
+                    viewModel.selectedVisit.value = it
 
                     var action = RoutePlanFragmentDirections.actionRoutePlanFragmentToVisitFragment()
                     findNavController().navigate(action)
 
                 }.addTo(disposable)
 
+            }.addTo(disposable)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        disposable.dispose()
+    }
+
+    private fun startObservingRoutePlan() {
+        viewModel
+            .routePlanObservable
+            .withLatestFrom(LocationService.locationObservable)
+            .filter { it.first.any() }
+            .map { Pair(it.first[0], it.second) }
+            .subscribe {
+                val client = MapboxDirections.builder()
+                    .origin(com.mapbox.geojson.Point.fromLngLat(
+                        it.second.longitude,
+                        it.second.latitude
+                    ))
+                    .destination(com.mapbox.geojson.Point.fromLngLat(
+                        it.first.coordinates[0],
+                        it.first.coordinates[1]
+                    ))
+                    .steps(true)
+                    .overview(DirectionsCriteria.OVERVIEW_FULL)
+                    .profile(DirectionsCriteria.PROFILE_DRIVING)
+                    .accessToken(getString(R.string.mapbox_access_token))
+                    .build()
+
+                client?.enqueueCall(object : Callback<DirectionsResponse> {
+                    override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+                    }
+
+                    override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>) {
+
+                        val response = response
+                        if(response.body() != null) {
+                            val currentRoute = response.body()!!.routes()[0]
+
+                            if (naviRoute == null)
+                                naviRoute = NavigationMapRoute(null, mapView, map, R.style.NavigationMapRoute)
+
+                            naviRoute!!.removeRoute()
+                            naviRoute!!.addRoute(currentRoute)
+                        }
+                    }
+                })
+            }
+            .addTo(disposable)
+
+        viewModel
+            .routePlanObservable
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+
                 symbolManager.delete(annotationList)
                 annotationList.clear()
 
-                it.visits.forEach {
+                it.forEach {
 
                     Glide
                         .with(context)
@@ -155,48 +220,8 @@ class RoutePlanFragment : Fragment() {
                             }
                         })
                 }
-
-                val client = MapboxDirections.builder()
-                    .origin(com.mapbox.geojson.Point.fromLngLat(
-                        map.locationComponent.lastKnownLocation!!.longitude,
-                        map.locationComponent.lastKnownLocation!!.latitude
-                    ))
-                    .destination(com.mapbox.geojson.Point.fromLngLat(
-                        it.visits[0].coordinates[0],
-                        it.visits[0].coordinates[1]
-                    ))
-                    .steps(true)
-                    .overview(DirectionsCriteria.OVERVIEW_FULL)
-                    .profile(DirectionsCriteria.PROFILE_DRIVING)
-                    .accessToken(getString(R.string.mapbox_access_token))
-                    .build()
-
-                client?.enqueueCall(object : Callback<DirectionsResponse> {
-                    override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
-
-                    override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>) {
-
-                        val response = response
-                        val currentRoute = response.body()!!.routes()[0]
-
-                        if(naviRoute == null)
-                            naviRoute = NavigationMapRoute(null, mapView, map, R.style.NavigationMapRoute)
-
-                        naviRoute!!.removeRoute()
-                        naviRoute!!.addRoute(currentRoute)
-
-                    }
-                })
             }
             .addTo(disposable)
-
-    }
-
-    override fun onPause() {
-        super.onPause()
-        disposable.dispose()
     }
 
     @SuppressLint("MissingPermission")

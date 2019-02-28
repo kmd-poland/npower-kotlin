@@ -6,6 +6,7 @@
     <fragment android:name="pl.kmdpoland.npower.ui.main.MainFragment"
               android:label="MainFragment" android:id="@+id/mainFragment">
         <action android:id="@+id/action_mainFragment_to_routePlanFragment" app:destination="@id/routePlanFragment"/>
+        <action android:id="@+id/action_mainFragment_to_visitFragment" app:destination="@id/visitFragment"/>
     </fragment>
     <fragment android:id="@+id/visitFragment" android:name="pl.kmdpoland.npower.ui.visit.VisitFragment"
               android:label="VisitFragment"/>
