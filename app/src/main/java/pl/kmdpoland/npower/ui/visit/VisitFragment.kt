@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
+import androidx.transition.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.jakewharton.rxbinding2.view.clicks
@@ -18,6 +19,7 @@ import io.reactivex.rxkotlin.addTo
 import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.main_fragment.view.*
 import kotlinx.android.synthetic.main.visit_fragment.*
+import kotlinx.android.synthetic.main.visit_fragment.view.*
 import pl.kmdpoland.npower.R
 import pl.kmdpoland.npower.data.Visit
 import pl.kmdpoland.npower.services.RoutePlanService
@@ -52,6 +54,9 @@ class VisitFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        sharedElementEnterTransition = TransitionInflater.from(context).inflateTransition(R.transition.move)
+        sharedElementReturnTransition= TransitionInflater.from(context).inflateTransition(R.transition.move)
+
         var view = inflater.inflate(pl.kmdpoland.npower.R.layout.visit_fragment, container, false)
 
         return view

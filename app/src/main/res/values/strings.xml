@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NPower</string>
+    <string name="app_name">NPower - kotlin</string>
     <string name="mapbox_access_token">
         pk.eyJ1Ijoia21kbWN6IiwiYSI6ImNqcjBuYjVyaDBvdmw0MnBjMHp4YTNjN2gifQ.iX410k_yowA_YsV52H3V5A
     </string>

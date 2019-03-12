@@ -12,7 +12,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.NavOptions
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,6 +30,7 @@ import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.MapboxDirections
 import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.geometry.LatLngBounds
 import com.mapbox.mapboxsdk.location.modes.CameraMode
@@ -73,6 +76,8 @@ class RoutePlanFragment : Fragment() {
 
     private var naviRoute: NavigationMapRoute? = null
     private var annotationList: MutableList<Symbol> = mutableListOf()
+
+    private var routePlanAdapter: RoutePlanAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,17 +129,21 @@ class RoutePlanFragment : Fragment() {
             .routePlanObservable
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe{
-                var adapter = RoutePlanAdapter(it, context!!)
-                recyclerView.adapter = adapter
+                routePlanAdapter = RoutePlanAdapter(it, context!!)
+                recyclerView.adapter = routePlanAdapter
 
-                adapter.itemSelectedSubject.subscribe {
-                    viewModel.selectedVisit.value = it
+                routePlanAdapter!!.itemSelectedSubject.subscribe {
+                    viewModel.selectedVisit.value = it.first
+
+
+                    val extras = FragmentNavigatorExtras(
+                        it.second to "avatar", panel_layout to "layout"
+                    )
 
                     var action = RoutePlanFragmentDirections.actionRoutePlanFragmentToVisitFragment()
-                    findNavController().navigate(action)
+                    findNavController().navigate(action, extras)
 
                 }.addTo(disposable)
-
             }.addTo(disposable)
     }
 
@@ -144,6 +153,7 @@ class RoutePlanFragment : Fragment() {
     }
 
     private fun startObservingRoutePlan() {
+
         viewModel
             .routePlanObservable
             .withLatestFrom(LocationService.locationObservable)

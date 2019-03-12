@@ -3,6 +3,7 @@ package pl.kmdpoland.npower.ui.routePlan
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.jakewharton.rxbinding2.view.clicks
@@ -14,7 +15,7 @@ import java.text.SimpleDateFormat
 
 class RoutePlanAdapter(val items : List<Visit>, val context: Context) : RecyclerView.Adapter<VisitViewHolder>() {
 
-    val itemSelectedSubject = PublishSubject.create<Visit>()
+    val itemSelectedSubject = PublishSubject.create<Pair<Visit, ImageView>>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VisitViewHolder {
         val holder = VisitViewHolder(
@@ -26,7 +27,7 @@ class RoutePlanAdapter(val items : List<Visit>, val context: Context) : Recycler
         )
 
         holder.itemView.isClickable = true
-        holder.itemView.clicks().subscribe { itemSelectedSubject.onNext(holder.visit) }
+        holder.itemView.clicks().subscribe { itemSelectedSubject.onNext(Pair(holder.visit, holder.avatar)) }
         return holder
     }
 
@@ -34,7 +35,7 @@ class RoutePlanAdapter(val items : List<Visit>, val context: Context) : Recycler
         val item = items.get(position)
 
         holder.visit = item
-
+        holder.avatar.transitionName = "avatar${position}"
         val formatter = SimpleDateFormat("HH:mm")
 
         holder?.name?.text = "${formatter.format(item.startTime)} - ${item.firstName} ${item.lastName}"
